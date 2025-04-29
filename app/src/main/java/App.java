@@ -1,0 +1,28 @@
+import java.util.ArrayList;
+
+import models.*;
+
+public class App {
+    public static void main(String[] args) {
+        Parameters config = ConfigLoader.loadConfig("model.yml");
+
+        // ATRIBUINDO NETWORKS PARA AS FILAS
+        for (Queue q : config.queues.values()) {
+            for (NetworkConnection connection : config.network) {
+                if (q.getName().equals(connection.getSource())) {
+                    q.getConnections().add(connection);
+                }
+            }
+        }
+
+        ArrayList<Queue> queues = new ArrayList<>(config.queues.values());
+        ArrayList<Event> arrivals = new ArrayList<>(config.events);
+        int rounds = config.rndnumbersPerSeed;
+
+        for (Queue q : queues) {
+            System.out.println(q.toString());
+        }
+
+        // Simulator.start(queues, arrivals, rounds);
+    }
+}

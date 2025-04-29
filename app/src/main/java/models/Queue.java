@@ -1,6 +1,10 @@
 package models;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Queue {
+    private String name;
     private int servers;
     private int capacity;
     private double minArrival;
@@ -10,18 +14,21 @@ public class Queue {
     private int customers;
     private int losses;
     private double[] times;
+    private ArrayList<NetworkConnection> connections;
 
-    public Queue(int servers, int capacity, double minArrival, double maxArrival, double minService, double maxService,
-            int customers, int losses, double[] times) {
+    public Queue(String name, int servers, int capacity, double minArrival, double maxArrival, double minService,
+            double maxService) {
+        this.name = name;
         this.servers = servers;
         this.capacity = capacity;
         this.minArrival = minArrival;
         this.maxArrival = maxArrival;
         this.minService = minService;
         this.maxService = maxService;
-        this.customers = customers;
-        this.losses = losses;
-        this.times = times;
+        customers = 0;
+        losses = 0;
+        times = new double[capacity + 1];
+        connections = new ArrayList<>();
     }
 
     public void In() {
@@ -106,6 +113,30 @@ public class Queue {
 
     public void setTimes(double[] times) {
         this.times = times;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ArrayList<NetworkConnection> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(ArrayList<NetworkConnection> connections) {
+        this.connections = connections;
+    }
+
+    @Override
+    public String toString() {
+        return "Queue [name=" + name + ", servers=" + servers + ", capacity=" + capacity + ", minArrival=" + minArrival
+                + ", maxArrival=" + maxArrival + ", minService=" + minService + ", maxService=" + maxService
+                + ", customers=" + customers + ", losses=" + losses + ", times=" + Arrays.toString(times)
+                + ", connections=" + connections.toString() + "]";
     }
 
 }

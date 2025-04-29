@@ -10,20 +10,70 @@ public class ConfigLoader {
 
     public static Parameters loadConfig(String filePath) {
         Yaml yaml = new Yaml();
-        try (InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(filePath)) {
+        InputStream inputStream = ConfigLoader.class.getClassLoader().getResourceAsStream(filePath);
+
+        if (inputStream == null) {
+            System.err.println("Arquivo YAML não encontrado: " + filePath);
+            return null;
+        }
+
+        try {
             Map<String, Object> obj = yaml.load(inputStream);
-
-            // O conteúdo real está depois do "!PARAMETERS", então você deve acessar
-            // diretamente
-            Map<String, Object> parameters = (Map<String, Object>) obj.get("PARAMETERS");
-
-            // Agora converte manualmente ou usa alguma técnica como um mapper.
-            // Vou te mostrar de um jeito manual por enquanto:
+            System.out.println(obj); // ADICIONE ESSA LINHA
 
             Parameters config = new Parameters();
-            config.arrivals = (Map<String, Double>) parameters.get("arrivals");
-            config.queues = (Map<String, Queue>) parameters.get("queues");
-            config.network = (List<NetworkConnection>) parameters.get("network");
+
+            Map<String, Object> parameters = obj; // usa o mapa raiz
+
+            // CONVERTE CHEGADAS
+            List<Event> events = new java.util.ArrayList<>();
+            Map<String, Double> arrivalsMap = (Map<String, Double>) parameters.get("arrivals");
+
+            for (Map.Entry<String, Double> entry : arrivalsMap.entrySet()) {
+                String queueName = entry.getKey();
+                double arrivalTime = entry.getValue();
+
+                Event e = new Event(arrivalTime, EventType.ARRIVAL, queueName);
+                events.add(e);
+            }
+            config.events = events;
+
+            // CONVERTE FILAS
+            Map<String, Map<String, Object>> queuesMap = (Map<String, Map<String, Object>>) parameters.get("queues");
+            Map<String, Queue> parsedQueues = new java.util.HashMap<>();
+
+            for (String name : queuesMap.keySet()) {
+                Map<String, Object> q = queuesMap.get(name);
+
+                int servers = (int) q.get("servers");
+                int capacity = q.containsKey("capacity") ? (int) q.get("capacity") : Integer.MAX_VALUE;
+
+                double minArrival = q.containsKey("minArrival") ? ((Number) q.get("minArrival")).doubleValue() : -1;
+                double maxArrival = q.containsKey("maxArrival") ? ((Number) q.get("maxArrival")).doubleValue() : -1;
+                double minService = ((Number) q.get("minService")).doubleValue();
+                double maxService = ((Number) q.get("maxService")).doubleValue();
+
+                Queue queue = new Queue(name, servers, capacity, minArrival, maxArrival, minService, maxService);
+                // queue.setTimes(new double[capacity + 1]);
+                parsedQueues.put(name, queue);
+            }
+            config.queues = parsedQueues;
+
+            // CONVERTE NETWORK
+            List<Map<String, Object>> networkList = (List<Map<String, Object>>) parameters.get("network");
+            List<NetworkConnection> parsedConnections = new java.util.ArrayList<>();
+
+            for (Map<String, Object> conn : networkList) {
+                String source = (String) conn.get("source");
+                String target = (String) conn.get("target");
+                double probability = ((Number) conn.get("probability")).doubleValue();
+
+                NetworkConnection c = new NetworkConnection(source, target, probability);
+                parsedConnections.add(c);
+            }
+            config.network = parsedConnections;
+
+            // RESTO
             config.rndnumbersPerSeed = (Integer) parameters.get("rndnumbersPerSeed");
             config.seeds = (List<Integer>) parameters.get("seeds");
             config.rndnumbers = (List<Double>) parameters.get("rndnumbers");
