@@ -1,4 +1,4 @@
-package src;
+package models;
 
 public class Event implements Comparable<Event> {
     private double time;

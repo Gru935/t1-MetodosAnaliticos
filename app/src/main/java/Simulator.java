@@ -1,7 +1,7 @@
-package src;
-
 import java.util.ArrayList;
 import java.util.PriorityQueue;
+
+import models.*;
 
 public class Simulator {
     public static PriorityQueue<Event> scheduler = new PriorityQueue<>();
