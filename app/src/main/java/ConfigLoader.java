@@ -19,7 +19,6 @@ public class ConfigLoader {
 
         try {
             Map<String, Object> obj = yaml.load(inputStream);
-            System.out.println(obj); // ADICIONE ESSA LINHA
 
             Parameters config = new Parameters();
 

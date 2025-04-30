@@ -5,10 +5,10 @@ arrivals:
 queues: 
    Q1: 
       servers: 1
-      minArrival: 20.0
-      maxArrival: 40.0
-      minService: 10.0
-      maxService: 12.0
+      minArrival: 2.0
+      maxArrival: 4.0
+      minService: 1.0
+      maxService: 2.0
    Q2: 
       servers: 2
       capacity: 5

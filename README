@@ -1,0 +1,8 @@
+Para rodar o programa:
+
+1. Instale o Gradle v8.13
+1.2. Link para instalar o Gradle: https://gradle.org/releases/
+
+2. Abra um terminal na raiz do projeto e digite: gradle build
+3. Após baixar as dependências do projeto, digite: gradle run
+4. Agora o programa já deve estar rodando
