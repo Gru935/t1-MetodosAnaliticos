@@ -4,11 +4,19 @@ public class Event implements Comparable<Event> {
     private double time;
     private EventType type;
     private String queue_name;
+    private String origin_queue_name;
 
     public Event(double time, EventType type, String queue_name) {
         this.time = time;
         this.type = type;
         this.queue_name = queue_name;
+    }
+
+    public Event(double time, EventType type, String queue_name, String origin_queue_name) {
+        this.time = time;
+        this.type = type;
+        this.queue_name = queue_name;
+        this.origin_queue_name = origin_queue_name;
     }
 
     public void setTime(double time) {
@@ -38,6 +46,14 @@ public class Event implements Comparable<Event> {
 
     public void setQueue_name(String queue_name) {
         this.queue_name = queue_name;
+    }
+
+    public String getOrigin_queue_name() {
+        return origin_queue_name;
+    }
+
+    public void setOrigin_queue_name(String origin_queue_name) {
+        this.origin_queue_name = origin_queue_name;
     }
 
 }

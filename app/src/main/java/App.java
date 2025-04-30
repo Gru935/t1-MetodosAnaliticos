@@ -13,6 +13,7 @@ public class App {
                     q.getConnections().add(connection);
                 }
             }
+            q.getConnections().sort((c1, c2) -> Double.compare(c1.getProbability(), c2.getProbability()));
         }
 
         ArrayList<Queue> queues = new ArrayList<>(config.queues.values());
@@ -23,6 +24,6 @@ public class App {
             System.out.println(q.toString());
         }
 
-        // Simulator.start(queues, arrivals, rounds);
+        Simulator.start(queues, arrivals, rounds);
     }
 }

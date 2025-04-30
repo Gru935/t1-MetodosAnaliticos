@@ -40,7 +40,7 @@ network:
 -  source: Q3
    target: Q3
    probability: 0.7
-   source: Q3
+-  source: Q3
    target: exit
    probability: 0.3
 

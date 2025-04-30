@@ -1,129 +1,173 @@
-// import java.util.ArrayList;
-// import java.util.Map;
-// import java.util.PriorityQueue;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Random;
 
-// import models.*;
+import models.*;
 
-// public class Simulator {
-// public static PriorityQueue<Event> scheduler;
-// public static double global_time;
-// public static int x;
+public class Simulator {
+    public static PriorityQueue<Event> scheduler;
+    public static double global_time;
+    public static int x;
 
-// public static void start(ArrayList<Queue> queues, ArrayList<Event> arrivals,
-// int rounds) {
-// scheduler = new PriorityQueue<>(arrivals);
-// global_time = 0.0;
-// x = 57406;
+    public static void start(ArrayList<Queue> queues, ArrayList<Event> arrivals, int rounds) {
+        scheduler = new PriorityQueue<>(arrivals);
+        global_time = 0.0;
+        x = 57406;
 
-// while (rounds > 0) {
-// Event event = nextEvent();
+        while (rounds > 0) {
+            // PEGA O PROXIMO EVENTO
+            Event event = nextEvent();
 
-// if (event.getType() == EventType.ARRIVAL) {
-// arrival(event);
-// } else if (event.getType() == EventType.EXIT) {
-// exit(event);
-// } else {
-// pass(event);
-// }
-// rounds--;
-// }
+            if (event.getType() == EventType.ARRIVAL) {
+                // PEGA A FILA ASSOCIADA AQUELE EVENTO
+                Queue event_queue = findQueueByName(queues, event.getQueue_name());
+                arrival(event, queues, event_queue);
+            } else if (event.getType() == EventType.EXIT) {
+                // PEGA A FILA ASSOCIADA AQUELE EVENTO
+                Queue event_queue = findQueueByName(queues, event.getQueue_name());
+                exit(event, queues, event_queue);
+            } else {
+                // PEGA A FILA ASSOCIADA AQUELE EVENTO E A FILA DE ORIGEM
+                Queue event_queue = findQueueByName(queues, event.getQueue_name());
+                Queue origin_queue = findQueueByName(queues, event.getOrigin_queue_name());
+                pass(event, queues, event_queue, origin_queue);
+            }
+            rounds--;
+        }
 
-// // Realizar os prints dos conteudos exigidos
-// // System.out.println("Q1");
-// // System.out.println("State Time Probability");
-// // for (int i = 0; i < queue1.getTimes().length; i++) {
-// // System.out.println(
-// // i + " " + queue1.getTimes()[i] + " " + queue1.getTimes()[i] / global_time
-// *
-// // 100 + "%");
-// // }
-// // System.out.println();
-// // System.out.println("Number of losses: " + queue1.getLosses());
-// // System.out.println();
-// // System.out.println("Q2");
-// // System.out.println("State Time Probability");
-// // for (int i = 0; i < queue2.getTimes().length; i++) {
-// // System.out.println(
-// // i + " " + queue2.getTimes()[i] + " " + queue2.getTimes()[i] / global_time
-// *
-// // 100 + "%");
-// // }
-// // System.out.println();
-// // System.out.println("Number of losses: " + queue2.getLosses());
-// // System.out.println();
-// // System.out.println("Global time: " + global_time);
-// }
+    }
 
-// public static double nextRandom() {
-// x = ((4212002 * x) + 2224621) % 429496729;
-// return ((double) x) / 429496729;
-// }
+    public static double nextRandom() {
+        x = ((4212002 * x) + 2224621) % 429496729;
+        return ((double) x) / 429496729;
+    }
 
-// public static Event nextEvent() {
-// return scheduler.poll();
-// }
+    public static Event nextEvent() {
+        return scheduler.poll();
+    }
 
-// public static void arrival(Event e) {
-// accTime(e);
-// if (queue1.getCustomers() < queue1.getCapacity()) {
-// queue1.In();
-// if (queue1.getCustomers() <= queue1.getServers()) {
-// schedulePass();
-// }
-// } else {
-// queue1.Loss();
-// }
-// scheduleArrival();
-// }
+    public static Queue findQueueByName(ArrayList<Queue> queues, String name) {
+        for (Queue q : queues) {
+            if (q.getName().equals(name)) {
+                return q;
+            }
+        }
+        return null;
+    }
 
-// public static void exit(Event e) {
-// accTime(e);
-// queue2.Out();
-// if (queue2.getCustomers() >= queue2.getServers()) {
-// scheduleExit();
-// }
-// }
+    private static String drawProbability(Queue queue) {
+        double sum = 0.0;
+        Random r = new Random();
+        double prob = r.nextDouble(0, 1);
+        for (NetworkConnection n : queue.getConnections()) {
+            sum += n.getProbability();
+            if (prob < sum) {
+                return n.getTarget();
+            }
+        }
+        return null;
+    }
 
-// public static void pass(Event e) {
-// accTime(e);
-// queue1.Out();
-// if (queue1.getCustomers() >= queue1.getServers()) {
-// schedulePass();
-// }
-// if (queue2.getCustomers() < queue2.getCapacity()) {
-// queue2.In();
-// if (queue2.getCustomers() <= queue2.getServers()) {
-// scheduleExit();
-// }
-// } else {
-// queue2.Loss();
-// }
-// }
+    public static void arrival(Event e, ArrayList<Queue> queues, Queue event_queue) {
+        accTime(e, queues);
+        if (event_queue.getCustomers() < event_queue.getCapacity()) {
+            event_queue.In();
+            if (event_queue.getCustomers() <= event_queue.getServers()) {
 
-// public static void accTime(Event e) {
-// queue1.getTimes()[queue1.getCustomers()] += e.getTime() - global_time;
-// queue2.getTimes()[queue2.getCustomers()] += e.getTime() - global_time;
-// global_time = e.getTime();
-// }
+                // SORTEIA O DESTINO DO PROXIMO EVENTO (SAIDA OU PASSAGEM DE FILA)
+                String name_target = drawProbability(event_queue);
 
-// public static void scheduleArrival() {
-// double u = queue1.getMinArrival() + ((queue1.getMaxArrival() -
-// queue1.getMinArrival()) * nextRandom());
-// Event event = new Event(u + global_time, EventType.ARRIVAL);
-// scheduler.add(event);
-// }
+                if (name_target.equals("exit")) {
+                    scheduleExit(event_queue);
+                } else {
+                    Queue target_queue = findQueueByName(queues, name_target);
+                    schedulePass(event_queue, target_queue);
+                }
+            }
+        } else {
+            event_queue.Loss();
+        }
+        scheduleArrival(event_queue);
+    }
 
-// public static void scheduleExit() {
-// double u = queue2.getMinService() + ((queue2.getMaxService() -
-// queue2.getMinService()) * nextRandom());
-// Event event = new Event(u + global_time, EventType.EXIT);
-// scheduler.add(event);
-// }
+    public static void exit(Event e, ArrayList<Queue> queues, Queue event_queue) {
+        accTime(e, queues);
+        event_queue.Out();
+        if (event_queue.getCustomers() >= event_queue.getServers()) {
 
-// public static void schedulePass() {
-// double u = queue1.getMinService() + ((queue1.getMaxService() -
-// queue1.getMinService()) * nextRandom());
-// Event event = new Event(u + global_time, EventType.PASS);
-// scheduler.add(event);
-// }
-// }
+            // SORTEIA O DESTINO DO PROXIMO EVENTO (SAIDA OU PASSAGEM DE FILA)
+            String name_target = drawProbability(event_queue);
+
+            if (name_target.equals("exit")) {
+                scheduleExit(event_queue);
+            } else {
+                Queue target_queue = findQueueByName(queues, name_target);
+                schedulePass(event_queue, target_queue);
+            }
+        }
+    }
+
+    public static void pass(Event e, ArrayList<Queue> queues, Queue event_queue, Queue origin_queue) {
+        accTime(e, queues);
+        origin_queue.Out();
+        if (event_queue.getCustomers() >= event_queue.getServers()) {
+
+            // SORTEIA O DESTINO DO PROXIMO EVENTO (SAIDA OU PASSAGEM DE FILA)
+            String name_target = drawProbability(event_queue);
+
+            if (name_target.equals("exit")) {
+                scheduleExit(event_queue);
+            } else {
+                Queue target_queue = findQueueByName(queues, name_target);
+                schedulePass(event_queue, target_queue);
+            }
+        }
+        if (event_queue.getCustomers() < event_queue.getCapacity()) {
+            event_queue.In();
+            if (event_queue.getCustomers() <= event_queue.getServers()) {
+
+                // SORTEIA O DESTINO DO PROXIMO EVENTO (SAIDA OU PASSAGEM DE FILA)
+                String name_target = drawProbability(event_queue);
+
+                if (name_target.equals("exit")) {
+                    scheduleExit(event_queue);
+                } else {
+                    Queue target_queue = findQueueByName(queues, name_target);
+                    schedulePass(event_queue, target_queue);
+                }
+            }
+        } else {
+            event_queue.Loss();
+        }
+    }
+
+    public static void accTime(Event e, ArrayList<Queue> queues) {
+        for (Queue q : queues) {
+            q.getTimes()[q.getCustomers()] += e.getTime() - global_time;
+        }
+        global_time = e.getTime();
+    }
+
+    public static void scheduleArrival(Queue event_queue) {
+        double u = event_queue.getMinArrival() + ((event_queue.getMaxArrival() -
+                event_queue.getMinArrival()) * nextRandom());
+        Event event = new Event(u + global_time, EventType.ARRIVAL, event_queue.getName());
+        scheduler.add(event);
+    }
+
+    public static void scheduleExit(Queue event_queue) {
+        double u = event_queue.getMinService() + ((event_queue.getMaxService() -
+                event_queue.getMinService()) * nextRandom());
+        Event event = new Event(u + global_time, EventType.EXIT, event_queue.getName());
+        scheduler.add(event);
+    }
+
+    public static void schedulePass(Queue event_queue, Queue target_queue) {
+        double u = event_queue.getMinService() + ((event_queue.getMaxService() -
+                event_queue.getMinService()) * nextRandom());
+        Event event = new Event(u + global_time, EventType.PASS, target_queue.getName(), event_queue.getName());
+        scheduler.add(event);
+    }
+}
