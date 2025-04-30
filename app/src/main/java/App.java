@@ -20,10 +20,6 @@ public class App {
         ArrayList<Event> arrivals = new ArrayList<>(config.events);
         int rounds = config.rndnumbersPerSeed;
 
-        for (Queue q : queues) {
-            System.out.println(q.toString());
-        }
-
         Simulator.start(queues, arrivals, rounds);
     }
 }

@@ -46,7 +46,11 @@ public class ConfigLoader {
                 Map<String, Object> q = queuesMap.get(name);
 
                 int servers = (int) q.get("servers");
-                int capacity = q.containsKey("capacity") ? (int) q.get("capacity") : Integer.MAX_VALUE;
+
+                // Caso a capacidade não seja dita, estamos considerandos um valor alto, mas não
+                // o maior possível (MAX_INTEGER), pois senão os limites da JVM são
+                // ultrapassados (Exception: Requested array size exceeds VM limit)
+                int capacity = q.containsKey("capacity") ? (int) q.get("capacity") : 1000000;
 
                 double minArrival = q.containsKey("minArrival") ? ((Number) q.get("minArrival")).doubleValue() : -1;
                 double maxArrival = q.containsKey("maxArrival") ? ((Number) q.get("maxArrival")).doubleValue() : -1;

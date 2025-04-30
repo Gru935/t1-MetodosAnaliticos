@@ -37,6 +37,21 @@ public class Simulator {
             rounds--;
         }
 
+        // COLOCAR OS PRINTS
+        for (Queue q : queues) {
+            System.out.println(q.getName());
+            System.out.println("State   Time                  Probability");
+            for (int i = 0; i < q.getTimes().length; i++) {
+                if (q.getTimes()[i] != 0.0) {
+                    System.out.println(
+                            i + "       " + q.getTimes()[i] + "    " + q.getTimes()[i] / global_time * 100 + "%");
+                }
+            }
+            System.out.println();
+            System.out.println("Number of losses: " + q.getLosses());
+            System.out.println();
+        }
+        System.out.println("Global time: " + global_time);
     }
 
     public static double nextRandom() {
